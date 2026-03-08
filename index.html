@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skye — Weather</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky: #080d1a;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.10);
+      --text: #e8eaf6;
+      --muted: rgba(232,234,246,0.5);
+      --accent: #7eb8f7;
+      --accent2: #a5d8ff;
+      --glow: rgba(126,184,247,0.18);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sky);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ─── Static background gradient ─── */
+    .bg-gradient {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(62,100,180,0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(30,60,130,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 60% 30%, rgba(126,184,247,0.08) 0%, transparent 50%);
+    }
+
+    /* ─── Stars ─── */
+    .bg-stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 45% 8%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 12%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 92% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 38% 88%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 78% 82%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 62% 70%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 5%  50%, rgba(255,255,255,0.35) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 48% 35%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    }
+
+    /* ─── Floating glowing orbs ─── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 380px; height: 380px; background: rgba(59,111,212,0.22); top: -120px; left: -100px; animation: orb1 20s ease-in-out infinite; }
+    .orb-2 { width: 280px; height: 280px; background: rgba(126,184,247,0.16); top: 25%; right: -80px;  animation: orb2 15s ease-in-out infinite; }
+    .orb-3 { width: 220px; height: 220px; background: rgba(94,156,245,0.15);  bottom: 0;  left: 10%;   animation: orb3 22s ease-in-out infinite; }
+    .orb-4 { width: 160px; height: 160px; background: rgba(165,216,255,0.13);top: 50%;  left: 0%;    animation: orb4 12s ease-in-out infinite; }
+    .orb-5 { width: 130px; height: 130px; background: rgba(144,202,249,0.15); bottom:15%;right: 8%;   animation: orb5 17s ease-in-out infinite; }
+    .orb-6 { width: 100px; height: 100px; background: rgba(200,230,255,0.12);top: 10%;  left: 50%;   animation: orb6 9s ease-in-out infinite; }
+
+    @keyframes orb1 { 0%,100%{transform:translate(0,0)  scale(1)}   40%{transform:translate(70px,90px)  scale(1.15)} 70%{transform:translate(-40px,50px) scale(0.9)} }
+    @keyframes orb2 { 0%,100%{transform:translate(0,0)  scale(1)}   35%{transform:translate(-80px,60px) scale(1.1)}  65%{transform:translate(20px,-50px) scale(1.05)} }
+    @keyframes orb3 { 0%,100%{transform:translate(0,0)  scale(1)}   50%{transform:translate(90px,-70px) scale(1.2)} }
+    @keyframes orb4 { 0%,100%{transform:translate(0,0)}              45%{transform:translate(60px,-90px)} }
+    @keyframes orb5 { 0%,100%{transform:translate(0,0)  scale(1)}   55%{transform:translate(-70px,50px) scale(1.15)} }
+    @keyframes orb6 { 0%,100%{transform:translate(0,0)}              50%{transform:translate(-40px,60px)} }
+
+    /* ─── Rising emoji particles ─── */
+    .particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      font-size: 1.5rem;
+      animation: rise linear infinite;
+      user-select: none;
+    }
+    @keyframes rise {
+      0%   { transform: translateY(105vh) translateX(0)               rotate(0deg);   opacity: 0; }
+      8%   { opacity: 0.12; }
+      50%  { transform: translateY(50vh)  translateX(var(--drift, 40px)) rotate(180deg); opacity: 0.09; }
+      92%  { opacity: 0.09; }
+      100% { transform: translateY(-10vh) translateX(calc(var(--drift, 40px) * 0.5)) rotate(360deg); opacity: 0; }
+    }
+
+    /* ─── App wrapper ─── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Header */
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; animation: fadeDown 0.6s ease both; }
+    .logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.7rem; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 30%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .locate-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--accent); font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+      padding: 8px 16px; border-radius: 50px; cursor: pointer; transition: all 0.2s;
+      backdrop-filter: blur(12px);
+    }
+    .locate-btn:hover { background: rgba(126,184,247,0.12); border-color: rgba(126,184,247,0.4); transform: translateY(-1px); }
+    .locate-btn svg { width: 14px; height: 14px; }
+
+    /* Search */
+    .search-wrap { position: relative; animation: fadeDown 0.6s 0.1s ease both; }
+    .search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 16px; height: 16px; }
+    .search-input {
+      width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      padding: 13px 80px 13px 44px; border-radius: 14px;
+      backdrop-filter: blur(12px); outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: rgba(126,184,247,0.5); background: rgba(255,255,255,0.07); }
+    .search-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: var(--accent); color: #080d1a; border: none;
+      font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700;
+      padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: opacity 0.2s, transform 0.2s;
+    }
+    .search-btn:hover { opacity: 0.85; transform: translateY(-50%) scale(1.03); }
+
+    /* Main card */
+    .main-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+      backdrop-filter: blur(20px); padding: 32px; animation: fadeUp 0.7s 0.2s ease both;
+      position: relative; overflow: hidden;
+    }
+    .main-card::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .location-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .location-row svg { color: var(--accent); width: 14px; height: 14px; }
+    .location-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--accent2); letter-spacing: 0.02em; }
+    .date-str { font-size: 0.78rem; color: var(--muted); margin-left: auto; }
+    .temp-row { display: flex; align-items: flex-start; gap: 16px; margin: 12px 0 4px; }
+    .big-temp {
+      font-family: 'Syne', sans-serif; font-size: 5.5rem; font-weight: 800;
+      line-height: 1; letter-spacing: -0.04em;
+      background: linear-gradient(160deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .weather-icon-big { font-size: 4rem; line-height: 1; margin-top: 4px; animation: iconFloat 4s ease-in-out infinite; }
+    .desc-row { font-size: 1rem; font-weight: 300; color: var(--muted); text-transform: capitalize; letter-spacing: 0.04em; margin-bottom: 24px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .stat-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+      transition: background 0.2s;
+    }
+    .stat-item:hover { background: rgba(255,255,255,0.07); }
+    .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; }
+    .feels-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .pill { background: rgba(126,184,247,0.1); border: 1px solid rgba(126,184,247,0.2); border-radius: 50px; padding: 5px 12px; font-size: 0.78rem; color: var(--accent2); }
+
+    /* Forecast */
+    .forecast-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+      backdrop-filter: blur(20px); padding: 20px 24px; animation: fadeUp 0.7s 0.35s ease both;
+    }
+    .forecast-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 14px; }
+    .forecast-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .forecast-strip::-webkit-scrollbar { display: none; }
+    .fc-item {
+      flex: 0 0 72px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 12px 8px; text-align: center;
+      display: flex; flex-direction: column; gap: 6px; align-items: center; transition: background 0.2s;
+    }
+    .fc-item:hover { background: rgba(255,255,255,0.08); }
+    .fc-item.today { background: rgba(126,184,247,0.12); border-color: rgba(126,184,247,0.3); }
+    .fc-time { font-size: 0.7rem; color: var(--muted); }
+    .fc-icon { font-size: 1.4rem; }
+    .fc-temp { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; }
+
+    /* Status cards */
+    .status-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+      backdrop-filter: blur(20px); padding: 48px 32px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .status-icon { font-size: 3rem; animation: iconFloat 3s ease-in-out infinite; }
+    .status-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; }
+    .status-sub { font-size: 0.85rem; color: var(--muted); max-width: 280px; line-height: 1.6; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(126,184,247,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .error-msg { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: #ff9999; border-radius: 12px; padding: 10px 16px; font-size: 0.82rem; text-align: center; animation: fadeDown 0.3s ease both; }
+
+    /* Keyframes */
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp   { from { opacity: 0; transform: translateY(20px);  } to { opacity: 1; transform: translateY(0); } }
+    @keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes spin     { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-gradient"></div>
+<div class="bg-stars"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+<div class="orb orb-5"></div>
+<div class="orb orb-6"></div>
+
+<!-- Emoji particles injected by JS -->
+<div id="particles"></div>
+
+<div class="wrapper">
+  <!-- Header -->
+  <div class="header">
+    <span class="logo">Skye</span>
+    <button class="locate-btn" id="locateBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+      </svg>
+      Use my location
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search city, e.g. London…" />
+    <button class="search-btn" id="searchBtn">GO</button>
+  </div>
+
+  <div id="errorBox" class="error-msg hidden"></div>
+
+  <!-- Init state -->
+  <div class="status-card" id="initCard">
+    <div class="status-icon">🌤️</div>
+    <div class="status-title">Welcome to Skye</div>
+    <div class="status-sub">Click "Use my location" to get instant weather for where you are, or search any city above.</div>
+  </div>
+
+  <!-- Loading state -->
+  <div class="status-card hidden" id="loadCard">
+    <div class="spinner"></div>
+    <div class="status-title">Fetching weather…</div>
+    <div class="status-sub" id="loadMsg">Getting your location</div>
+  </div>
+
+  <!-- Weather result -->
+  <div id="weatherSection" class="hidden">
+    <div class="main-card" style="margin-bottom:16px">
+      <div class="location-row">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span class="location-name" id="locName">—</span>
+        <span class="date-str" id="dateStr">—</span>
+      </div>
+      <div class="temp-row">
+        <div class="big-temp" id="bigTemp">—</div>
+        <div class="weather-icon-big" id="mainIcon">🌤️</div>
+      </div>
+      <div class="desc-row" id="descRow">—</div>
+      <div class="stats-grid">
+        <div class="stat-item"><span class="stat-label">Humidity</span><span class="stat-value" id="humidity">—</span></div>
+        <div class="stat-item"><span class="stat-label">Wind</span><span class="stat-value" id="wind">—</span></div>
+        <div class="stat-item"><span class="stat-label">Visibility</span><span class="stat-value" id="visibility">—</span></div>
+        <div class="stat-item"><span class="stat-label">Pressure</span><span class="stat-value" id="pressure">—</span></div>
+      </div>
+      <div class="feels-row">
+        <span class="pill" id="feelsPill">Feels like —</span>
+        <span class="pill" id="hiLowPill">H — / L —</span>
+      </div>
+    </div>
+    <div class="forecast-card">
+      <div class="forecast-label">3-Hour Forecast</div>
+      <div class="forecast-strip" id="forecastStrip"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_KEY = '65e2afaaf21a4659d1c8d709efacfa98';
+  const BASE = 'https://api.openweathermap.org/data/2.5';
+
+  const iconMap = {
+    '01d':'☀️','01n':'🌙','02d':'⛅','02n':'🌙','03d':'☁️','03n':'☁️',
+    '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
+    '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'
+  };
+
+  // ── Floating particles ──────────────────────────────────
+  const EMOJIS = ['☁️','⛅','🌤️','✨','❄️','💧','🌟','🌙','⭐','🌬️','☁️','⛅','✨','💧'];
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 16; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    el.textContent = EMOJIS[i % EMOJIS.length];
+    const left     = Math.random() * 100;
+    const duration = 22 + Math.random() * 25;
+    const delay    = -(Math.random() * duration);
+    const size     = 0.7 + Math.random() * 0.7;
+    const drift    = (Math.random() - 0.5) * 120;
+    el.style.cssText = `left:${left}vw; font-size:${size}rem; animation-duration:${duration}s; animation-delay:${delay}s; --drift:${drift}px;`;
+    container.appendChild(el);
+  }
+
+  // ── Helpers ─────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const initCard = $('initCard'), loadCard = $('loadCard'), weatherSection = $('weatherSection'), errorBox = $('errorBox');
+
+  function showInit()    { initCard.classList.remove('hidden'); loadCard.classList.add('hidden'); weatherSection.classList.add('hidden'); }
+  function showLoad(msg) { initCard.classList.add('hidden'); loadCard.classList.remove('hidden'); weatherSection.classList.add('hidden'); $('loadMsg').textContent = msg; }
+  function showWeather() { initCard.classList.add('hidden'); loadCard.classList.add('hidden'); weatherSection.classList.remove('hidden'); }
+  function showError(msg){ errorBox.textContent = msg; errorBox.classList.remove('hidden'); setTimeout(()=>errorBox.classList.add('hidden'), 6000); }
+
+  // ── Fetch ────────────────────────────────────────────────
+  async function safeFetch(url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.cod == 401) throw new Error('⏳ API key not active yet. New keys take up to 15 min to activate. Please wait and try again.');
+    if (data.cod == 429) throw new Error('Too many requests. Please wait a moment and try again.');
+    if (data.cod && data.cod !== 200 && data.cod !== '200') throw new Error(data.message || 'API error: ' + data.cod);
+    return data;
+  }
+
+  async function fetchWeather(lat, lon) {
+    showLoad('Loading weather data…');
+    try {
+      const [cur, fore] = await Promise.all([
+        safeFetch(`${BASE}/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`),
+        safeFetch(`${BASE}/forecast?lat=${lat}&lon=${lon}&units=metric&cnt=8&appid=${API_KEY}`)
+      ]);
+      renderWeather(cur, fore);
+    } catch(e) {
+      showInit();
+      showError(e.message || 'Could not fetch weather. Check your connection.');
+    }
+  }
+
+  async function fetchByCity(city) {
+    showLoad(`Searching for ${city}…`);
+    try {
+      const geo = await safeFetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(city)}&limit=1&appid=${API_KEY}`);
+      if (!Array.isArray(geo) || !geo.length) throw new Error('City not found. Try a different spelling.');
+      await fetchWeather(geo[0].lat, geo[0].lon);
+    } catch(e) {
+      showInit();
+      showError(e.message || 'City not found. Try a different name.');
+    }
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  function renderWeather(cur, fore) {
+    $('locName').textContent    = cur.name + ', ' + cur.sys.country;
+    $('dateStr').textContent    = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    $('bigTemp').textContent    = Math.round(cur.main.temp) + '°';
+    $('mainIcon').textContent   = iconMap[cur.weather[0].icon] || '🌡️';
+    $('descRow').textContent    = cur.weather[0].description;
+    $('humidity').textContent   = cur.main.humidity + '%';
+    $('wind').textContent       = Math.round(cur.wind.speed * 3.6) + ' km/h';
+    $('visibility').textContent = cur.visibility ? (cur.visibility/1000).toFixed(1)+' km' : '—';
+    $('pressure').textContent   = cur.main.pressure + ' hPa';
+    $('feelsPill').textContent  = 'Feels like ' + Math.round(cur.main.feels_like) + '°';
+    $('hiLowPill').textContent  = 'H '+Math.round(cur.main.temp_max)+'° / L '+Math.round(cur.main.temp_min)+'°';
+
+    const strip = $('forecastStrip');
+    strip.innerHTML = '';
+    fore.list.forEach((item, i) => {
+      const d    = new Date(item.dt * 1000);
+      const time = i === 0 ? 'Now' : d.toLocaleTimeString('en-US',{hour:'numeric',hour12:true});
+      const div  = document.createElement('div');
+      div.className = 'fc-item' + (i===0?' today':'');
+      div.innerHTML = `<span class="fc-time">${time}</span><span class="fc-icon">${iconMap[item.weather[0].icon]||'🌡️'}</span><span class="fc-temp">${Math.round(item.main.temp)}°</span>`;
+      strip.appendChild(div);
+    });
+    showWeather();
+  }
+
+  // ── Events ───────────────────────────────────────────────
+  $('locateBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) { showError('Geolocation not supported by your browser.'); return; }
+    showLoad('Getting your location…');
+    navigator.geolocation.getCurrentPosition(
+      pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+      ()  => { showInit(); showError('Location access denied. Search a city manually instead.'); }
+    );
+  });
+
+  $('searchBtn').addEventListener('click', () => {
+    const q = $('searchInput').value.trim();
+    if (!q) { showError('Please enter a city name.'); return; }
+    fetchByCity(q);
+  });
+
+  $('searchInput').addEventListener('keydown', e => { if (e.key==='Enter') $('searchBtn').click(); });
+
+  // Auto-detect on page load
+  window.addEventListener('load', () => {
+    if (navigator.geolocation) {
+      showLoad('Detecting your location…');
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        ()  => showInit()
+      );
+    }
+  });
+</script>
+</body>
+</html>
